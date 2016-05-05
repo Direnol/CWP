@@ -7,7 +7,12 @@
 #include "hash.h"
 #include "stat.h"
 
-int list_dir(char *dir, FILE *f);
+
+int list_dir(char *dir, int parent);
+void chapath(char *path);
+int save_info(char *file, char **output);
+
+int id = 1;
 
 FILE *file = NULL;
 
@@ -27,8 +32,7 @@ int main(int argc, char **argv)
 
     // opterr = 0; // запретить вывод ошибок от getopt()
    
-    /* s-Save integrity info; c-check integrity info; 
-     * */
+    // s-Save integrity info; c-check integrity info
     while ((key = getopt(argc, argv, "scrf:")) != -1) {
         switch (key) {
             default: {
@@ -102,35 +106,75 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Incorrect mode\n");
 		return 8;
 	}
+    file = fopen(data, "w");
     
-    if (list_dir(path, file) == 69)
+    chapath(path);
+    printf("Directory %s\n", path);
+    fprintf(file, "%d %s %s %d\n", id, path, "dir", 0);
+    id++;
+    if (list_dir(path, (id - 1)) == 69){
+		printf("Oops\n");
 		return 69;
-    
+	}
+		
+    fclose(file);
     return 0;
 }
 
-int list_dir(char *path, FILE *f)
+int list_dir(char *path, int parent)
 {
+	int n;
 	DIR *dir; // Директория
     struct dirent *entry;// Элемент директории
-    char new_path[PATH_MAX];//Так, конечно, пишут только говнори
+    char new_path[PATH_MAX];
 	dir = opendir(path);
     if (!dir) {
 		fprintf(stderr, "Incorrect path of directory\n");
 		return 69;
 	}
-	
+
 	while ((entry = readdir(dir)) != NULL) {
-		printf("%s\n", entry->d_name);
-		
-		if ((entry->d_type == 4) && (strcmp(entry->d_name, ".") != 0) &&
+		if ((entry->d_type == 4) && (strcmp(entry->d_name, ".") != 0) && // If this's directory
 			(strcmp(entry->d_name, "..")) != 0) {
-			snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name);
-			printf("This is directory %s\n", new_path);
-			list_dir(new_path, f);
+				
+			n = strlen(path) - 1;
+			while (path[n] == '/') { // Delete slashes
+				path[n] = '\0';
+				n--;
+			}
+			
+			snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name); // Create the path for the directory
+			printf("Directory %d %s\n", parent, new_path);
+			fprintf(file, "%d %s %s %d\n", id, entry->d_name, "dir", parent);
+			id++;
+			list_dir(new_path, (id - 1)); // Read new the path
+		} else if ((strcmp(entry->d_name, ".") != 0) && // Do something if it is not dot or directory
+				   (strcmp(entry->d_name, "..")) != 0) {
+			printf("File %d %s hash\n", parent, entry->d_name);
+			fprintf(file, "%d %s %s %d hash\n", id, entry->d_name, "file", parent);
+			id++;
 		}
-		
 	}
 	
 	closedir(dir);
+}
+int save_info(char *file, char **output)
+{
+	
+}
+void chapath(char *path)
+{
+	int i = 0;
+	
+	if (strcmp(path, "./") == 0)
+		return;
+	if (strcmp(path, "/") == 0)
+		return;
+	if (path[0] == '.') {
+		while (path[i + 2] != '\0') {
+			path[i] = path[i + 2];
+			i++;
+		}
+		path[i] = '\0';
+	}
 }
