@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <dirent.h>
-#include <unistd.h> 
+#include <unistd.h>
 #include "hash.h"
 #include "stat.h"
 
 
-int list_dir(char *dir, int parent);
+int save_dir_list(char *dir, int parent);
 void chapath(char *path);
 int save_info(char *file, char **output);
 
@@ -25,20 +25,20 @@ int main(int argc, char **argv)
         fprintf(stderr, "Basic usage: integrctrl –c –f data path\n");
         return EXIT_FAILURE;
     }
-    
+
     int key, mode = 0, recursive = 0, file_count = 0;
     char *data = NULL;
     char *path = NULL;
 
     // opterr = 0; // запретить вывод ошибок от getopt()
-   
+
     // s-Save integrity info; c-check integrity info
     while ((key = getopt(argc, argv, "scrf:")) != -1) {
         switch (key) {
             default: {
-        fprintf(stderr, "Basic usage: integrctrl –s –f data path\n");
-        fprintf(stderr, "Basic usage: integrctrl –s -r –f data path\n");
-        fprintf(stderr, "Basic usage: integrctrl –c –f data path\n");
+                fprintf(stderr, "Basic usage: integrctrl –s –f data path\n");
+                fprintf(stderr, "Basic usage: integrctrl –s -r –f data path\n");
+                fprintf(stderr, "Basic usage: integrctrl –c –f data path\n");
                 return 4;
                 break;
 			}
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 				}
 				recursive++;
 				break;
-			}	
+			}
 			case 'f': {
 				if (file_count != 0) {
 					fprintf(stderr, "You use -f more than one time\n");
@@ -96,32 +96,30 @@ int main(int argc, char **argv)
 			}
         }
     }
-    
+
     // printf("%s\n%s\n", data, path);
+    chapath(path);
     if (mode == 1) {
 		// printf("mode %s\n", "Save information");
+		file = fopen(data, "w");
+		fprintf(file, "%d %s %s %d\n", id, path, "dir", 0);
+        id++;
+        if (save_dir_list(path, (id - 1)) == 69){
+            printf("Oops\n");
+            return 69;
+        }
 	} else if (mode == 2) {
 		// printf("mode %s\n", "Check infromation");
 	} else {
 		fprintf(stderr, "Incorrect mode\n");
 		return 8;
 	}
-    file = fopen(data, "w");
-    
-    chapath(path);
-    printf("Directory %s\n", path);
-    fprintf(file, "%d %s %s %d\n", id, path, "dir", 0);
-    id++;
-    if (list_dir(path, (id - 1)) == 69){
-		printf("Oops\n");
-		return 69;
-	}
-		
+
     fclose(file);
     return 0;
 }
 
-int list_dir(char *path, int parent)
+int save_dir_list(char *path, int parent)
 {
 	int n;
 	DIR *dir; // Директория
@@ -136,36 +134,45 @@ int list_dir(char *path, int parent)
 	while ((entry = readdir(dir)) != NULL) {
 		if ((entry->d_type == 4) && (strcmp(entry->d_name, ".") != 0) && // If this's directory
 			(strcmp(entry->d_name, "..")) != 0) {
-				
+
 			n = strlen(path) - 1;
 			while (path[n] == '/') { // Delete slashes
 				path[n] = '\0';
 				n--;
 			}
-			
+
 			snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name); // Create the path for the directory
 			printf("Directory %d %s\n", parent, new_path);
 			fprintf(file, "%d %s %s %d\n", id, entry->d_name, "dir", parent);
 			id++;
-			list_dir(new_path, (id - 1)); // Read new the path
+			save_dir_list(new_path, (id - 1)); // Read new the path
 		} else if ((strcmp(entry->d_name, ".") != 0) && // Do something if it is not dot or directory
 				   (strcmp(entry->d_name, "..")) != 0) {
-			printf("File %d %s hash\n", parent, entry->d_name);
-			fprintf(file, "%d %s %s %d hash\n", id, entry->d_name, "file", parent);
+			char *hash = NULL;
+			save_info(entry->d_name, &hash);
+			printf("File %d %s %s\n", parent, entry->d_name, hash);
+			fprintf(file, "%d %s %s %d %s\n", id, entry->d_name, "file", parent, hash);
 			id++;
 		}
 	}
-	
+
 	closedir(dir);
 }
 int save_info(char *file, char **output)
 {
-	
+    FILE *f = fopen(file, "r");
+    struct stat buff;
+    stat(file, &buff);
+    char *tmp = malloc(sizeof(char) * buff.st_size);
+    fscanf((f, "%s", tmp));
+    hash(tmp, &output);
+    fclose(f);
+
 }
 void chapath(char *path)
 {
 	int i = 0;
-	
+
 	if (strcmp(path, "./") == 0)
 		return;
 	if (strcmp(path, "/") == 0)
