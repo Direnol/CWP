@@ -8,7 +8,7 @@
 #include "stat.h"
 
 
-int save_dir_list(char *dir, int parent);
+int save_dir_list(char *dir, int parent, int mode);
 void chapath(char *path);
 int save_info(char *file, char **output);
 
@@ -55,8 +55,9 @@ int main(int argc, char **argv)
 					fprintf(stderr, "You're using keys -s and -c together or more than one\n");
 					return 5;
 				}
-				mode = mode + 2;
+				mode += 2;
 			}
+			break;
 			case 'r': {
 				if (recursive != 0) {
 					fprintf(stderr, "You use -r more than one time\n");
@@ -104,12 +105,17 @@ int main(int argc, char **argv)
 		file = fopen(data, "w");
 		fprintf(file, "%d %s %s %d\n", id, path, "dir", 0);
         id++;
-        if (save_dir_list(path, (id - 1)) == 69){
+        if (save_dir_list(path, (id - 1), recursive) == 69){
             printf("Oops\n");
             return 69;
         }
 	} else if (mode == 2) {
-		// printf("mode %s\n", "Check infromation");
+		file = fopen(data, "r");
+		if (!file) {
+			fprintf(stderr, "Your data is not exsist\n");
+			return 11;
+		}
+		printf("mode %s\n", "Check infromation");
 	} else {
 		fprintf(stderr, "Incorrect mode\n");
 		return 8;
@@ -119,7 +125,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-int save_dir_list(char *path, int parent)
+int save_dir_list(char *path, int parent, int mode)
 {
 	int n;
 	DIR *dir; // Директория
@@ -145,11 +151,13 @@ int save_dir_list(char *path, int parent)
 			printf("Directory %d %s\n", parent, new_path);
 			fprintf(file, "%d %s %s %d\n", id, entry->d_name, "dir", parent);
 			id++;
-			save_dir_list(new_path, (id - 1)); // Read new the path
+			if (mode == 1)
+				save_dir_list(new_path, (id - 1), mode); // Read new the path
 		} else if ((strcmp(entry->d_name, ".") != 0) && // Do something if it is not dot or directory
 				   (strcmp(entry->d_name, "..")) != 0) {
 			char *hash = NULL;
-			save_info(entry->d_name, &hash);
+			snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name);
+			save_info(new_path, &hash);
 			printf("File %d %s %s\n", parent, entry->d_name, hash);
 			fprintf(file, "%d %s %s %d %s\n", id, entry->d_name, "file", parent, hash);
 			id++;
@@ -158,17 +166,23 @@ int save_dir_list(char *path, int parent)
 
 	closedir(dir);
 }
+
 int save_info(char *file, char **output)
 {
     FILE *f = fopen(file, "r");
+    if (!f) {
+		fprintf(stderr, "can't open file %s\n", file);
+		return 99;
+	}
     struct stat buff;
     stat(file, &buff);
     char *tmp = malloc(sizeof(char) * buff.st_size);
-    fscanf((f, "%s", tmp));
-    hash(tmp, &output);
+    fscanf(f, "%s", tmp);
+    hash(tmp, &(*output));
     fclose(f);
 
 }
+
 void chapath(char *path)
 {
 	int i = 0;
