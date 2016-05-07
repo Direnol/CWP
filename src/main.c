@@ -8,13 +8,20 @@
 #include "stat.h"
 
 
-int save_dir_list(char *dir, int parent, int mode);
-void chapath(char *path);
+int save_dir_list(char *dir, char *parent, int mode);
+int check_path(char *path);
 int save_info(char *file, char **output);
 
-int id = 1;
 
-FILE *file = NULL;
+FILE *f = NULL;
+
+typedef struct data {
+	char *name;
+	char *type;
+	char *parent_dir;
+	char *hash;
+	
+}DATA;
 
 int main(int argc, char **argv)
 {
@@ -99,19 +106,21 @@ int main(int argc, char **argv)
     }
 
     // printf("%s\n%s\n", data, path);
-    chapath(path);
-    if (mode == 1) {
-		// printf("mode %s\n", "Save information");
-		file = fopen(data, "w");
-		fprintf(file, "%d %s %s %d\n", id, path, "dir", 0);
-        id++;
-        if (save_dir_list(path, (id - 1), recursive) == 69){
+    if (check_path(path)) {
+		fprintf(stderr, "You must use full path\n");
+		return 13;
+	}
+    
+    if (mode == 1) { // Save information
+		f = fopen(data, "w");
+		// fprintf(f, "%s %s %s %s\n", path, "dir", "", "");
+        if (save_dir_list(path, path, recursive) == 69){
             printf("Oops\n");
             return 69;
         }
-	} else if (mode == 2) {
-		file = fopen(data, "r");
-		if (!file) {
+	} else if (mode == 2) { // Check infromation
+		f = fopen(data, "r");
+		if (!f) {
 			fprintf(stderr, "Your data is not exsist\n");
 			return 11;
 		}
@@ -121,13 +130,14 @@ int main(int argc, char **argv)
 		return 8;
 	}
 
-    fclose(file);
+    fclose(f);
     return 0;
 }
 
-int save_dir_list(char *path, int parent, int mode)
+int save_dir_list(char *path, char *parent, int mode)
 {
 	int n;
+	DATA file, d;
 	DIR *dir; // Директория
     struct dirent *entry;// Элемент директории
     char new_path[PATH_MAX];
@@ -146,21 +156,26 @@ int save_dir_list(char *path, int parent, int mode)
 				path[n] = '\0';
 				n--;
 			}
-
+			d.name = entry->d_name;
+			d.type = "dir";
+			d.parent_dir = parent;
+			d.hash = NULL;
 			snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name); // Create the path for the directory
-			printf("Directory %d %s\n", parent, new_path);
-			fprintf(file, "%d %s %s %d\n", id, entry->d_name, "dir", parent);
-			id++;
+			// printf("Directory %d %s\n", parent, new_path);
+			fprintf(f, "%s %s %s %s\n", d.name, d.type, d.parent_dir, d.hash);
 			if (mode == 1)
-				save_dir_list(new_path, (id - 1), mode); // Read new the path
+				save_dir_list(new_path, new_path, mode); // Read new the path
 		} else if ((strcmp(entry->d_name, ".") != 0) && // Do something if it is not dot or directory
 				   (strcmp(entry->d_name, "..")) != 0) {
 			char *hash = NULL;
 			snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name);
 			save_info(new_path, &hash);
-			printf("File %d %s %s\n", parent, entry->d_name, hash);
-			fprintf(file, "%d %s %s %d %s\n", id, entry->d_name, "file", parent, hash);
-			id++;
+			// printf("File %d %s %s\n", parent, entry->d_name, hash);
+			file.name = entry->d_name;
+			file.type = "file";
+			file.parent_dir = parent;
+			file.hash = hash;
+			fprintf(f, "%s %s %s %s\n", file.name, file.type, file.parent_dir, file.hash);
 		}
 	}
 
@@ -183,19 +198,10 @@ int save_info(char *file, char **output)
 
 }
 
-void chapath(char *path)
+int check_path(char *path)
 {
-	int i = 0;
-
-	if (strcmp(path, "./") == 0)
-		return;
-	if (strcmp(path, "/") == 0)
-		return;
-	if (path[0] == '.') {
-		while (path[i + 2] != '\0') {
-			path[i] = path[i + 2];
-			i++;
-		}
-		path[i] = '\0';
-	}
+	if (path[0] == '/')
+		return 0;
+	else
+		return 1;
 }
