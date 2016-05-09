@@ -117,12 +117,8 @@ int main(int argc, char **argv)
     
     if (mode == 1) { // Save information
 		f = fopen(data, "wb");
-		DATA parent;
-		strcpy(parent.name, path);
-		strcpy(parent.type, "dir");
-		strcpy(parent.parent_dir, "");
-		strcpy(parent.hash, "");
-
+		fwrite(&recursive, sizeof(int), 1, f);
+		
         if (save_dir_list(path, path, recursive) == 69){
             printf("Oops\n");
             return 69;
@@ -133,7 +129,12 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Your data is not exsist\n");
 			return 11;
 		}
-		
+		int check;
+		fread(&check, sizeof(int), 1, f);
+		if (check != recursive) {
+			fprintf(stderr, "Incorrect recursive mod\n");
+			return 88;
+		}
 		struct stat buff;
 		stat(data, &buff);
 		int i;
@@ -141,7 +142,7 @@ int main(int argc, char **argv)
 		info = malloc(sizeof(DATA) * count);
 		for (i = 0; i < count; i++)  {
 			fread(&info[i], sizeof(DATA), 1, f);
-			printf("%s %s %s %s\n", info[i].name, info[i].type, info[i].parent_dir, info[i].hash);
+			// printf("%s %s %s %s\n", info[i].name, info[i].type, info[i].parent_dir, info[i].hash);
 	}
 		check_dir_list(path, path, recursive);
 	} else {
