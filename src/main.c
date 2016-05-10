@@ -11,6 +11,7 @@ int main(int argc, char **argv)
     }
 
     int key, mode = 0, recursive = 0, file_count = 0;
+    int i;
     char *data = NULL;
     char *path = NULL;
 
@@ -88,10 +89,12 @@ int main(int argc, char **argv)
 		return 13;
 	}
     
+    //~ DATA origin_dir;
+    //~ strcpy(origin_dir.name, path);
     if (mode == 1) { // Save information
 		f = fopen(data, "wb");
 		fwrite(&recursive, sizeof(int), 1, f);
-		fwrite(path, sizeof(char), 100, f);
+		//~ fwrite(&origin_dir, sizeof(DATA), 1, f);
 		
         if (save_dir_list(path, path, recursive) == 69){
             printf("Oops\n");
@@ -105,38 +108,44 @@ int main(int argc, char **argv)
 		}
 		
 		int check;
-		char p[PATH_MAX];
-		
 		fread(&check, sizeof(int), 1, f);
 		if (check != recursive) {
 			fprintf(stderr, "Incorrect recursive mod\n");
 			return 88;
 		}
 		
-		fread(p, sizeof(char), 4069, f);
-		printf("%s\n%s\n", p, path);
-		if (strcmp(p, path) != 0) {
-			fprintf(stderr, "Path is not original\n");
-			return 88;
-		}
-		
-		
+		//~ fread(&origin_dir, sizeof(DATA), 1, f);
+		//~ if (strcmp(origin_dir.name, path) != 0) {
+			//~ fprintf(stderr, "Your path is not origin to data\n");
+			//~ return 300;
+		//~ }
 		
 		struct stat buff;
 		stat(data, &buff);
 		int i;
-		count = buff.st_size / sizeof(DATA);
+		count = (buff.st_size - sizeof(int)) / sizeof(DATA);
 		info = malloc(sizeof(DATA) * count);
 		for (i = 0; i < count; i++)  {
 			fread(&info[i], sizeof(DATA), 1, f);
 			// printf("%s %s %s %s\n", info[i].name, info[i].type, info[i].parent_dir, info[i].hash);
-	}
+		}
+		if(strcmp(info[0].parent_dir, path) != 0) {
+			fprintf(stderr, "%s Your origin dir is \"%s\"%s\n", WHITE, info[0].name, RESET);
+			return 300;
+		}
+		
 		check_dir_list(path, path, recursive);
 	} else {
-		fprintf(stderr, "Incorrect mode\n");
-		return 8;
+			fprintf(stderr, "Incorrect mode\n");
+			return 8;
+	}
+	
+	for (i = 0; i < count; i++) {
+		if (strcmp(info[i].name, "|") != 0)
+			fprintf(stderr, "%s %s is DELETED\n", info[i].name, info[i].type);
 	}
 
+	//free(info);
     fclose(f);
     return 0;
 }
