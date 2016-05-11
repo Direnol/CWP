@@ -2,9 +2,9 @@
 Курсовая работа по теме : "Проверка целостности файлов"
 
 ## Как использовать
-* ./integctrl keys
-* ./integctrl -s -f data /home/alex/test
-*  ./integectrl -c -f data /home/alex/test 
+* ./integrctrl keys
+* ./integrctrl -s -f data /home/alex/test
+* ./integrctrl -c -f data /home/alex/test 
 
 ### Keys
 * -s - сохранить информацию о директории
