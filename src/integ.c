@@ -8,7 +8,7 @@ int save_dir_list(char *path, char *parent, int mode)
     char new_path[PATH_MAX];
 	dir = opendir(path);
     if (!dir) {
-		fprintf(stderr, "Incorrect path of directory\n%s\n", path);
+		fprintf(stderr, "%sIncorrect path of directory\n%s%s\n%s", RED, WHITE, path, RESET);
 		return 69;
 	}
 
@@ -62,7 +62,7 @@ int check_dir_list(char *path, char *parent, int mode)
     struct dirent *entry;// Элемент директории
     dir = opendir(path);
     if (!dir) {
-		fprintf(stderr, "(c)Incorrect path of directory\n%s\n", path);
+		fprintf(stderr, "%s(c)Incorrect path of directory\n%s%s\n%s", RED, WHITE, path, RESET);
 		return 69;
 	}
 	while ((entry = readdir(dir)) != NULL) {
@@ -105,7 +105,7 @@ int save_info(char *file, char **output)
 {
     FILE *f = fopen(file, "r");
     if (!f) {
-		fprintf(stderr, "can't open file %s\n", file);
+		fprintf(stderr, "%scan't open file%s %s\n%s", RED, WHITE, file, RESET);
 		return 99;
 	}
     struct stat buff;
@@ -139,16 +139,12 @@ void found_info(DATA curent)
 		int i;
 		char *DELETED = "|";
 		for (i = 0 ; i < count; i++) {
-			//~ printf("I %d\n", i);
-			//~ printf("%s %s %s\n", curent.name, curent.type, curent.parent_dir);
-			//~ printf("%s %s %s\n", info[i].name, info[i].type, info[i].parent_dir);
-			//~ 
 			if ((strcmp(info[i].name, curent.name) == 0)
 			 && (strcmp(info[i].type, curent.type) == 0)
 			 && (strcmp(info[i].parent_dir, curent.parent_dir) == 0)) {
 				if (strcmp(curent.type, "file") == 0) {
 					if (strcmp(info[i].hash, curent.hash) != 0) {
-						fprintf(stderr, "%s%s is %schanged%s\n",WHITE, RED, curent.name, RESET);
+						fprintf(stderr, "%s%s%s[%s] %sis changed%s\n",WHITE,curent.name, GREEN, curent.parent_dir, RED, RESET);
 						strcpy(info[i].name, DELETED);
 						return;
 					}
@@ -158,10 +154,10 @@ void found_info(DATA curent)
 			}
 		}
 		if (strcmp(curent.type, "dir") == 0) {
-				fprintf(stderr, "%sNEW DIRECTORY: %s %s%s%s\n", WHITE, curent.name, RED, curent.parent_dir, RESET);
+				fprintf(stderr, "%sNEW DIRECTORY: %s%s%s[%s] %s\n", RED, WHITE, curent.name, GREEN, curent.parent_dir, RESET);
 				return;
 		} else if (strcmp(curent.type, "file") == 0) {
-				fprintf(stderr, "%sNEW FILE: %s %s%s%s\n", WHITE, curent.name, RED, curent.parent_dir, RESET);
+				fprintf(stderr, "%sNEW FILE: %s%s%s[%s] %s\n", RED, WHITE, curent.name, GREEN, curent.parent_dir, RESET);
 				return;
 		}
 }
