@@ -1,5 +1,5 @@
 all: md5.o hash.o integ.o main.o
-	gcc -Wall -O0 -o integrctrl obj/md5.o obj/hash.o obj/integ.o obj/main.o
+	gcc -Wall -o integrctrl obj/md5.o obj/hash.o obj/integ.o obj/main.o
 	
 main.o: src/main.c
 	gcc -o obj/main.o -c src/main.c

@@ -116,7 +116,6 @@ int save_info(char *file, char **output)
     
     // free(tmp);
     fclose(f);
-
 }
 
 int check_path(char *path)
@@ -149,7 +148,7 @@ void found_info(DATA curent)
 			 && (strcmp(info[i].parent_dir, curent.parent_dir) == 0)) {
 				if (strcmp(curent.type, "file") == 0) {
 					if (strcmp(info[i].hash, curent.hash) != 0) {
-						fprintf(stderr, "%s is changed\n", curent.name);
+						fprintf(stderr, "%s%s is %schanged%s\n",WHITE, RED, curent.name, RESET);
 						strcpy(info[i].name, DELETED);
 						return;
 					}

@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 			// printf("%s %s %s %s\n", info[i].name, info[i].type, info[i].parent_dir, info[i].hash);
 		}
 		if(strcmp(info[0].parent_dir, path) != 0) {
-			fprintf(stderr, "%s Your origin dir is \"%s\"%s\n", WHITE, info[0].name, RESET);
+			fprintf(stderr, "%s Your origin dir is %s\"%s\"%s\n", WHITE, RED, info[0].name, RESET);
 			return 300;
 		}
 		
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "%s %s is DELETED\n", info[i].name, info[i].type);
 	}
 
-	//free(info);
+	free(info);
     fclose(f);
     return 0;
 }
