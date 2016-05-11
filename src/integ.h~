@@ -17,33 +17,33 @@
 #define GREEN	"\033[1;32m"
 
 enum ERRORS {
-    ER_MODE = 4,
-    ER_S_MODE,
-    ER_C_MODE,
-    ER_R_MODE,
-    ER_F_MODE,
-    ER_SAVE,
-    ER_CHECK,
-    ER_PATH,
-    ER_DATA
+	ER_MODE = 4,
+	ER_S_MODE,
+	ER_C_MODE,
+	ER_R_MODE,
+	ER_F_MODE,
+	ER_SAVE,
+	ER_CHECK,
+	ER_PATH,
+	ER_DATA
 };
 
 enum MODES {
-    REC_OFF,
-    REC_ON,
-    NO_MODE,
-    SAVE_MODE,
-    CHECK_MODE,
-    FILE_MODE
+	REC_OFF,
+	REC_ON,
+	NO_MODE,
+	SAVE_MODE,
+	CHECK_MODE,
+	FILE_MODE
 };
 
 typedef struct _data {
-    char name[261];
-    char type[5];
-    char parent_dir[4069];
-    char hash[64];
-
-} DATA;
+	char name[261];
+	char type[5];
+	char parent_dir[4069];
+	char hash[64];
+	
+}DATA;
 
 FILE *f;
 
