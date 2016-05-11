@@ -3,9 +3,10 @@
 
 ## Как использовать
 * ./integctrl keys
-* * ./integctrl -s -f data /home/alex/test
-* * ./integectrl -c -f data /home/alex/test 
-## Keys
+* ./integctrl -s -f data /home/alex/test
+*  ./integectrl -c -f data /home/alex/test 
+
+### Keys
 * -s - сохранить информацию о директории
 * -с - сверить информацию с базой данных(data)
 * -f data full_path - путь до data, полный путь до директории
