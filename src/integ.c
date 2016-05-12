@@ -2,6 +2,8 @@
 
 int save_dir_list(char *path, char *parent, int mode)
 {
+    printf("%d\n", gl_i);
+    gl_i++;
     DATA file, d;
     DIR *dir;                   // Директория
     struct dirent *entry;       // Элемент директории
@@ -108,12 +110,13 @@ int save_info(char *file, char **output)
     FILE *f = fopen(file, "r");
     if (!f) {
         fprintf(stderr, "%scan't open file%s %s\n%s", RED, WHITE, file, RESET);
-        return 99;
+        *output = "system";
+        return;
     }
     struct stat buff;
     stat(file, &buff);
     char *tmp = malloc(sizeof(char) * buff.st_size);
-    fscanf(f, "%s", tmp);
+    fread(tmp, (buff.st_size * sizeof(char)), 1, f);
     hash(tmp, &(*output));
 
     // free(tmp);
@@ -161,7 +164,7 @@ void found_info(DATA curent)
                 curent.name, GREEN, curent.parent_dir, RESET);
         return;
     } else if (strcmp(curent.type, "file") == 0) {
-        fprintf(stderr, "%sNEW FILE: %s%s%s[%s] %s\n", RED, WHITE, curent.name,
+        fprintf(stderr, "%sNEW FILE: %s%s%s[%s] %s\n", YELLOW, WHITE, curent.name,
                 GREEN, curent.parent_dir, RESET);
         return;
     }

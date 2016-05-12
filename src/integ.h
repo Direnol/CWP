@@ -48,7 +48,7 @@ typedef struct _data {
 FILE *f;
 
 DATA *info;
-int count;
+int count, gl_i;
 
 int save_dir_list(char *dir, char *parent, int mode);
 int check_dir_list(char *path, char *parent, int mode);

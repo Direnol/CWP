@@ -103,7 +103,7 @@ int main(int argc, char **argv)
                 }
         }
     }
-
+	gl_i = 0;
     if (check_path(path)) {
         fprintf(stderr, "%sYou must use full path%s\n", RED, RESET);
         return ER_PATH;
@@ -120,6 +120,7 @@ int main(int argc, char **argv)
         if (save_dir_list(path, path, recursive) == 69) {
             return 69;
         }
+        printf("%sSave is OK\n%s", YELLOW, RESET);
     } else if (mode == CHECK_MODE) {    // Check infromation
         f = fopen(data, "rb");
         if (!f) {
@@ -137,7 +138,7 @@ int main(int argc, char **argv)
         info = malloc(sizeof(DATA) * count);
         for (i = 0; i < count; i++) {
             fread(&info[i], sizeof(DATA), 1, f);
-            // printf("%s %s %s %s\n", info[i].name, info[i].type, info[i].parent_dir, info[i].hash);
+            printf("%s %s %s %s\n", info[i].name, info[i].type, info[i].parent_dir, info[i].hash);
         }
         if (strcmp(info[0].parent_dir, path) != 0) {
             fprintf(stderr, "%s Your origin dir is %s\"%s\"%s\n", WHITE, RED,
@@ -146,6 +147,7 @@ int main(int argc, char **argv)
         }
 
         check_dir_list(path, path, recursive);
+        printf("%sCheck is OK\n%s", YELLOW, RESET);
     } else {
         fprintf(stderr, "%sIncorrect mode\n%s", RED, RESET);
         return ER_MODE;
@@ -153,8 +155,8 @@ int main(int argc, char **argv)
 
     for (i = 0; i < count; i++) {
         if (strcmp(info[i].name, "|") != 0)
-            fprintf(stderr, "%s%s %s %sis DELETED\n%s", WHITE, info[i].name,
-                    info[i].type, RED, RESET);
+            fprintf(stderr, "%s%s%s[%s] %sis DELETED\n%s", WHITE, info[i].name,
+                    GREEN, info[i].type, RED, RESET);
     }
 
     free(info);
