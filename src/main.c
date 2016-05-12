@@ -16,9 +16,6 @@ int main(int argc, char **argv)
     char *data = NULL;
     char *path = NULL;
 
-    // opterr = 0; // запретить вывод ошибок от getopt()
-
-    // s-Save integrity info; c-check integrity info
     while ((key = getopt(argc, argv, "scrf:")) != -1) {
         switch (key) {
             default:{
@@ -103,11 +100,11 @@ int main(int argc, char **argv)
                 }
         }
     }
-	gl_i = 0;
+    
     if (check_path(path)) {
-        fprintf(stderr, "%sYou must use full path%s\n", RED, RESET);
         return ER_PATH;
     }
+   
     if ((mode == CHECK_MODE) && (recursive == REC_ON)) {
         fprintf(stderr, "%sYou're using -r with -c%s\n", RED, RESET);
         return ER_MODE;
@@ -117,10 +114,9 @@ int main(int argc, char **argv)
         f = fopen(data, "wb");
         fwrite(&recursive, sizeof(int), 1, f);
 
-        if (save_dir_list(path, path, recursive) == 69) {
-            return 69;
-        }
-        printf("%sSave is OK\n%s", YELLOW, RESET);
+        save_dir_list(path, path, recursive);
+
+        printf("%s%sSave is OK\n%s%s", YELLOW, _n, _n, RESET);
     } else if (mode == CHECK_MODE) {    // Check infromation
         f = fopen(data, "rb");
         if (!f) {
@@ -128,18 +124,19 @@ int main(int argc, char **argv)
             return ER_DATA;
         }
 
-        int check;
         fread(&recursive, sizeof(int), 1, f);
 
         struct stat buff;
         stat(data, &buff);
         int i;
+        
         count = (buff.st_size - sizeof(int)) / sizeof(DATA);
-        info = malloc(sizeof(DATA) * count);
+        info = calloc(count, sizeof(DATA));
+        
         for (i = 0; i < count; i++) {
             fread(&info[i], sizeof(DATA), 1, f);
-            printf("%s %s %s %s\n", info[i].name, info[i].type, info[i].parent_dir, info[i].hash);
         }
+        
         if (strcmp(info[0].parent_dir, path) != 0) {
             fprintf(stderr, "%s Your origin dir is %s\"%s\"%s\n", WHITE, RED,
                     info[0].parent_dir, RESET);
@@ -147,7 +144,8 @@ int main(int argc, char **argv)
         }
 
         check_dir_list(path, path, recursive);
-        printf("%sCheck is OK\n%s", YELLOW, RESET);
+
+        printf("%s%sCheck is OK\n%s%s", YELLOW, _n, _n, RESET);
     } else {
         fprintf(stderr, "%sIncorrect mode\n%s", RED, RESET);
         return ER_MODE;

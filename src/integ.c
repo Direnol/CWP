@@ -1,47 +1,38 @@
 #include "integ.h"
 
-int save_dir_list(char *path, char *parent, int mode)
+void save_dir_list(char *path, char *parent, int mode)
 {
-    printf("%d\n", gl_i);
-    gl_i++;
     DATA file, d;
     DIR *dir;                   // Директория
     struct dirent *entry;       // Элемент директории
     char new_path[PATH_MAX];
+    
     dir = opendir(path);
     if (!dir) {
-        fprintf(stderr, "%sIncorrect path of directory\n%s%s\n%s", RED, WHITE,
+        fprintf(stderr, "%sRoot directory\n%s%s\n%s", RED, WHITE,
                 path, RESET);
-        return 69;
+        return;
     }
 
     while ((entry = readdir(dir)) != NULL) {
-        if ((entry->d_type == 4) && (strcmp(entry->d_name, ".") != 0) &&        // If this's directory
+        if ((entry->d_type == 4) && (strcmp(entry->d_name, ".") != 0) &&
             (strcmp(entry->d_name, "..")) != 0) {
-
-            int n = strlen(path) - 1;
-            while (path[n] == '/') {    // Delete slashes
-                path[n] = '\0';
-                n--;
-            }
 
             strcpy(d.name, entry->d_name);
             strcpy(d.type, "dir");
             strcpy(d.parent_dir, parent);
             strcpy(d.hash, "");
-            snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name); // Create the path for the directory
+            snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name);
 
             fwrite(&d, sizeof(DATA), 1, f);
 
-            if (mode == 1)
-                if (save_dir_list(new_path, new_path, mode) == 69)
-                    return 69;  // Read new the path
-        } else if ((strcmp(entry->d_name, ".") != 0) && // Do something if it is not dot or directory
-                   (strcmp(entry->d_name, "..")) != 0) {
+            if (mode == REC_ON)
+                save_dir_list(new_path, new_path, mode);
+        } else if (entry->d_type == 8) {
             char *hash = NULL;
+            
             snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name);
-            if (save_info(new_path, &hash) == 99)
-                return 69;;
+            save_info(new_path, &hash);
 
             strcpy(file.name, entry->d_name);
             strcpy(file.type, "file");
@@ -53,24 +44,24 @@ int save_dir_list(char *path, char *parent, int mode)
     }
 
     closedir(dir);
-    return 0;
 }
 
-int check_dir_list(char *path, char *parent, int mode)
+void check_dir_list(char *path, char *parent, int mode)
 {
     DATA curent;
     char new_path[PATH_MAX];
-    int i;
-    DIR *dir;                   // Директория
-    struct dirent *entry;       // Элемент директории
+    DIR *dir;
+    struct dirent *entry; 
+    
     dir = opendir(path);
     if (!dir) {
         fprintf(stderr, "%s(c)Incorrect path of directory\n%s%s\n%s", RED,
                 WHITE, path, RESET);
-        return 69;
+        return;
     }
+    
     while ((entry = readdir(dir)) != NULL) {
-        if ((entry->d_type == 4) && (strcmp(entry->d_name, ".") != 0)   // If this's a directory
+        if ((entry->d_type == 4) && (strcmp(entry->d_name, ".") != 0)
             && (strcmp(entry->d_name, "..")) != 0) {
 
             strcpy(curent.name, entry->d_name);
@@ -78,19 +69,16 @@ int check_dir_list(char *path, char *parent, int mode)
             strcpy(curent.parent_dir, parent);
             strcpy(curent.hash, "");
 
-            snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name); // Create the path for the directory
+            snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name);
             found_info(curent);
 
             if (mode == 1)
-                if (check_dir_list(new_path, new_path, mode) == 69)
-                    return 69;;
-        } else if ((strcmp(entry->d_name, ".") != 0) && // Do something if it is not dot or directory
-                   (strcmp(entry->d_name, "..")) != 0) {
+                check_dir_list(new_path, new_path, mode);
+        } else if (entry->d_type == 8) {
             char *hash = NULL;
 
             snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name);
-            if (save_info(new_path, &hash) == 99)
-                return 69;;
+            save_info(new_path, &hash);
 
             strcpy(curent.name, entry->d_name);
             strcpy(curent.type, "file");
@@ -102,41 +90,59 @@ int check_dir_list(char *path, char *parent, int mode)
     }
 
     closedir(dir);
-    return 0;
 }
 
-int save_info(char *file, char **output)
-{
+void save_info(char *file, char **output)
+{	
     FILE *f = fopen(file, "r");
     if (!f) {
-        fprintf(stderr, "%scan't open file%s %s\n%s", RED, WHITE, file, RESET);
+        fprintf(stderr, "%sSysyem file %s %s\n%s", RED, WHITE, file, RESET);
         *output = "system";
         return;
     }
+   
+    long int i = 0;
     struct stat buff;
     stat(file, &buff);
-    char *tmp = malloc(sizeof(char) * buff.st_size);
-    fread(tmp, (buff.st_size * sizeof(char)), 1, f);
-    hash(tmp, &(*output));
+    
+    data_file = calloc((buff.st_size + 1), sizeof(char));
+    if(!data_file) printf("fuck\n");
+    
+    while ((data_file[i] = fgetc(f)) != EOF  ) {                
+        i++;      
+    } 
+	
+	hash(data_file, &(*output));
 
-    // free(tmp);
+    free(data_file);
     fclose(f);
 }
 
 int check_path(char *path)
 {
     int n = strlen(path) - 1;
-    if (n != 0) {               // length of path isn't equal 1
-        while (path[n] == '/') {        // Delete slashes
+    if (n != 0) {
+        while (path[n] == '/') {
             path[n] = '\0';
             n--;
         }
 
     }
+    
+    DIR *dir;
+    dir = opendir(path);
+    if (!dir) {
+        		fprintf(stderr, "%s Incorrect path%s[%s]\n%s", 
+								RED, WHITE, path, RESET);
+        return EXIT_FAILURE;
+    }
+
     if (path[0] == '/')
-        return 0;
-    else
-        return 1;
+        return EXIT_SUCCESS;
+    else {
+		fprintf(stderr, "%sYou must use full path%s\n", RED, RESET);
+        return EXIT_FAILURE;
+	}
 }
 
 void found_info(DATA curent)

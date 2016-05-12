@@ -15,6 +15,8 @@
 #define YELLOW  "\033[1;33m"
 #define WHITE   "\033[1;37m"
 #define GREEN	"\033[1;32m"
+#define BLUE	"\033[1;34m"
+#define _n	"_____________________________________________________\n"
 
 enum ERRORS {
     ER_MODE = 4,
@@ -48,12 +50,13 @@ typedef struct _data {
 FILE *f;
 
 DATA *info;
-int count, gl_i;
+int count;
+char *data_file;
 
-int save_dir_list(char *dir, char *parent, int mode);
-int check_dir_list(char *path, char *parent, int mode);
-int check_path(char *path);
-int save_info(char *file, char **output);
+void save_dir_list(char *dir, char *parent, int mode);
+void check_dir_list(char *path, char *parent, int mode);
 void found_info(DATA curent);
+void save_info(char *file, char **output);
+int check_path(char *path);
 
 #endif
