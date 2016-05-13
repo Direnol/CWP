@@ -158,6 +158,6 @@ int main(int argc, char **argv)
     }
 
     free(info);
-    fclose(f);;
+    fclose(f);
     return EXIT_SUCCESS;
 }
