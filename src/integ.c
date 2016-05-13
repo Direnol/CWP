@@ -9,7 +9,7 @@ void save_dir_list(char *path, char *parent, int mode)
     
     dir = opendir(path);
     if (!dir) {
-        fprintf(stderr, "%sRoot directory\n%s%s\n%s", RED, WHITE,
+        fprintf(stderr, "%sRoot directory %s%s\n%s", RED, WHITE,
                 path, RESET);
         return;
     }
@@ -22,7 +22,12 @@ void save_dir_list(char *path, char *parent, int mode)
             strcpy(d.type, "dir");
             strcpy(d.parent_dir, parent);
             strcpy(d.hash, "");
-            snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name);
+            
+            if (path[strlen(path) - 1] == '/') {
+				snprintf(new_path, PATH_MAX, "%s%s",
+				path, entry->d_name);
+			} else
+				snprintf(new_path, PATH_MAX, "%s/%s", path, entry->d_name);
 
             fwrite(&d, sizeof(DATA), 1, f);
 
@@ -104,9 +109,7 @@ void save_info(char *file, char **output)
     long int i = 0;
     struct stat buff;
     stat(file, &buff);
-    
     data_file = calloc((buff.st_size + 1), sizeof(char));
-    if(!data_file) printf("fuck\n");
     
     while ((data_file[i] = fgetc(f)) != EOF  ) {                
         i++;      
