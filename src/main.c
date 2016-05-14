@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     }
 
     int key, mode = NO_MODE, recursive = REC_OFF, file_count = FILE_MODE;
-    int i;
+    int i, ch;
     char *data = NULL;
     char *path = NULL;
 
@@ -110,6 +110,28 @@ int main(int argc, char **argv)
         return ER_MODE;
     }
 
+    if (fopen(data, "r")) {
+        fprintf(stdout, "%sYour data alredy is exist%s\n", RED, RESET);
+        fprintf(stdout, "%sThis data will be rewrite, aru you shure?(Y/N/Q)%s\n", GREEN, RESET);
+        do {
+            scanf("%d", &ch);
+            if (ch == 'y' || ch == 'Y') {
+                fclose(f);
+                break;
+            } else if (ch == 'N' || ch == 'n') {
+                data = realloc(data, sizeof(char) * (strlen(data) + 5));
+                sprintf(data, "%s.new", data);
+                fprintf(stdout, "%sNow your data name is %s%s\n%s", RED, WHITE, data, RESET);
+                fclose(f);
+                break;
+            } else if (ch == 'q' || ch == 'Q') {
+                fclose(f);
+                return EXIT_SUCCESS;
+            }
+            printf("%d \n", ch);
+        } while (1);
+    }
+        
     if (mode == SAVE_MODE) {    // Save information
         f = fopen(data, "wb");
         fwrite(&recursive, sizeof(int), 1, f);
