@@ -129,7 +129,7 @@ int main(int argc, char **argv)
                 return EXIT_SUCCESS;
             }
             printf("%d \n", ch);
-        } while (1);
+        } while (true);
     }
         
     if (mode == SAVE_MODE) {    // Save information

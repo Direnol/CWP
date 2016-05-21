@@ -13,7 +13,13 @@ hash.o: src/main.c
 md5.o: src/md5.c
 	gcc -o obj/md5.o -c src/md5.c
 	
+.PHONY: direct
+
+direct:
+	mkdir obj/
+
+
 .PHONY: clean
 
 clean:
-	rm obj/*
+	rm -r obj/
